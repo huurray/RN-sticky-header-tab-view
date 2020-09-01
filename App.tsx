@@ -112,7 +112,7 @@ const App = () => {
     scrollTimer.current = setTimeout(() => {
       console.log(scene, 'sync');
       syncOffset(scene, y);
-    }, 5);
+    }, 1);
   };
 
   const syncOffset = (scene: any, y: any) => {
