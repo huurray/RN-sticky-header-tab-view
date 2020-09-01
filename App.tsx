@@ -30,11 +30,17 @@ const initialLayout = {
   width: Dimensions.get('window').width,
 };
 
-const FirstRoute = ({position, handleScroll, firstRef}: any) => {
+const FirstRoute = ({
+  position,
+  handleScroll,
+  firstRef,
+  onMomentumScrollBegin,
+}: any) => {
   return (
     <Animated.FlatList
       ref={firstRef}
       scrollEventThrottle={1}
+      onMomentumScrollBegin={onMomentumScrollBegin}
       onScroll={Animated.event(
         [{nativeEvent: {contentOffset: {y: position}}}],
         {
@@ -56,10 +62,16 @@ const FirstRoute = ({position, handleScroll, firstRef}: any) => {
   );
 };
 
-const SecondRoute = ({position, handleScroll, secondRef}: any) => (
+const SecondRoute = ({
+  position,
+  handleScroll,
+  secondRef,
+  onMomentumScrollBegin,
+}: any) => (
   <Animated.FlatList
     ref={secondRef}
     scrollEventThrottle={1}
+    onMomentumScrollBegin={onMomentumScrollBegin}
     onScroll={Animated.event([{nativeEvent: {contentOffset: {y: position}}}], {
       listener: (event: any) => {
         handleScroll('second', event.nativeEvent.contentOffset.y);
@@ -86,17 +98,22 @@ const App = () => {
 
   const position: any = useRef(new Animated.Value(0)).current;
   const scrollTimer: any = useRef(0);
+  const isValidTabPress: any = useRef(false);
 
   const firstRef: any = useRef();
   const secondRef: any = useRef();
 
-  function handleScroll(scene: any, y: any) {
+  const onMomentumScrollBegin = () => {
+    isValidTabPress.current = true;
+  };
+
+  const handleScroll = (scene: any, y: any) => {
     clearTimeout(scrollTimer.current);
     scrollTimer.current = setTimeout(() => {
       console.log(scene, 'sync');
       syncOffset(scene, y);
-    }, 50);
-  }
+    }, 5);
+  };
 
   const syncOffset = (scene: any, y: any) => {
     console.log(scene, y);
@@ -112,6 +129,7 @@ const App = () => {
         animated: false,
       });
     }
+    isValidTabPress.current = false;
   };
 
   const renderScene = ({route}: any) => {
@@ -122,6 +140,7 @@ const App = () => {
             position={position}
             handleScroll={handleScroll}
             firstRef={firstRef}
+            onMomentumScrollBegin={onMomentumScrollBegin}
           />
         );
       case 'second':
@@ -130,6 +149,7 @@ const App = () => {
             position={position}
             handleScroll={handleScroll}
             secondRef={secondRef}
+            onMomentumScrollBegin={onMomentumScrollBegin}
           />
         );
       default:
@@ -152,11 +172,19 @@ const App = () => {
         <View
           style={{
             height: HEADER_HEIGHT,
-            backgroundColor: 'red',
+            backgroundColor: 'green',
           }}>
           <Text>Header</Text>
         </View>
-        <TabBar {...props} style={{height: TAB_BAR_HEIGHT}} />
+        <TabBar
+          {...props}
+          style={{height: TAB_BAR_HEIGHT}}
+          onTabPress={({route, preventDefault}) => {
+            if (isValidTabPress.current) {
+              preventDefault();
+            }
+          }}
+        />
       </Animated.View>
     );
   }
