@@ -32,7 +32,7 @@ const initialLayout = {
 
 const FirstRoute = ({
   position,
-  handleScroll,
+  syncOffset,
   firstRef,
   onMomentumScrollBegin,
 }: any) => {
@@ -43,13 +43,11 @@ const FirstRoute = ({
       onMomentumScrollBegin={onMomentumScrollBegin}
       onScroll={Animated.event(
         [{nativeEvent: {contentOffset: {y: position}}}],
-        {
-          listener: (event: any) => {
-            handleScroll('first', event.nativeEvent.contentOffset.y);
-          },
-          useNativeDriver: true,
-        },
+        {useNativeDriver: true},
       )}
+      onMomentumScrollEnd={(e) => {
+        syncOffset('first', e.nativeEvent.contentOffset.y);
+      }}
       data={DATA}
       keyExtractor={(item, i) => String(i)}
       renderItem={({item}) => (
@@ -64,7 +62,7 @@ const FirstRoute = ({
 
 const SecondRoute = ({
   position,
-  handleScroll,
+  syncOffset,
   secondRef,
   onMomentumScrollBegin,
 }: any) => (
@@ -73,11 +71,11 @@ const SecondRoute = ({
     scrollEventThrottle={1}
     onMomentumScrollBegin={onMomentumScrollBegin}
     onScroll={Animated.event([{nativeEvent: {contentOffset: {y: position}}}], {
-      listener: (event: any) => {
-        handleScroll('second', event.nativeEvent.contentOffset.y);
-      },
       useNativeDriver: true,
     })}
+    onMomentumScrollEnd={(e) => {
+      syncOffset('second', e.nativeEvent.contentOffset.y);
+    }}
     data={DATA}
     keyExtractor={(item, i) => String(i)}
     renderItem={({item}) => (
@@ -97,7 +95,6 @@ const App = () => {
   ]);
 
   const position: any = useRef(new Animated.Value(0)).current;
-  const scrollTimer: any = useRef(0);
   const isValidTabPress: any = useRef(false);
 
   const firstRef: any = useRef();
@@ -105,14 +102,6 @@ const App = () => {
 
   const onMomentumScrollBegin = () => {
     isValidTabPress.current = true;
-  };
-
-  const handleScroll = (scene: any, y: any) => {
-    clearTimeout(scrollTimer.current);
-    scrollTimer.current = setTimeout(() => {
-      console.log(scene, 'sync');
-      syncOffset(scene, y);
-    }, 1);
   };
 
   const syncOffset = (scene: any, y: any) => {
@@ -138,7 +127,7 @@ const App = () => {
         return (
           <FirstRoute
             position={position}
-            handleScroll={handleScroll}
+            syncOffset={syncOffset}
             firstRef={firstRef}
             onMomentumScrollBegin={onMomentumScrollBegin}
           />
@@ -147,7 +136,7 @@ const App = () => {
         return (
           <SecondRoute
             position={position}
-            handleScroll={handleScroll}
+            syncOffset={syncOffset}
             secondRef={secondRef}
             onMomentumScrollBegin={onMomentumScrollBegin}
           />
